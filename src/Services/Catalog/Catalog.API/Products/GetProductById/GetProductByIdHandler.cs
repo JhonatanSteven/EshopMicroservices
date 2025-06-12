@@ -12,9 +12,9 @@ namespace Catalog.API.Products.GetProductById
     {
         public async Task<GetProductByIdResult> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
         {
-            logger.LogInformation("Retrieving product with ID: {ProductId}", query.Id);
+            logger.LogInformation("GetProductByIdHandler.Handle call  with ID: {ProductId}", query.Id);
             var product = await session.LoadAsync<Product>(query.Id, cancellationToken) ?? throw new ProductNotFoundException(query.Id);
-            logger.LogInformation("Product retrieved");
+            logger.LogInformation("GetProductByIdHandler.Handle Successfully");
             return new GetProductByIdResult(product);
         }
     }

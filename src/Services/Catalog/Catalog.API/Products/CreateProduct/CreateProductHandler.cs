@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Products.CreateProduct
+﻿using Microsoft.Extensions.Logging;
+
+namespace Catalog.API.Products.CreateProduct
 {
     // Comando para crear un producto, contiene los datos necesarios
     public record CreateProductCommand(
@@ -13,7 +15,7 @@
     public record CreateProductResult(Guid Id);
 
     // Handler encargado de procesar el comando de creación de producto
-    internal class CreateProductHandler(IDocumentSession session) 
+    internal class CreateProductHandler(IDocumentSession session, ILogger<CreateProductHandler> logger)
         : ICommandHandler<CreateProductCommand, CreateProductResult>
     {
         /// <summary>
@@ -24,6 +26,8 @@
         /// <returns>Resultado con el Id del producto creado.</returns>
         public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
         {
+            logger.LogInformation("CreateProductHandler.Handle call  with command: {@command}", command);
+
             // Crear la entidad Product a partir de los datos del comando
             var product = new Product
             {
@@ -39,6 +43,7 @@
             await session.SaveChangesAsync(cancellationToken);
 
             // Devolver el resultado con el Id del producto creado
+            logger.LogInformation("CreateProductHandler.Handle Successfully: product.Id = {id}", product.Id);
             return new CreateProductResult(product.Id);
         }
     }
