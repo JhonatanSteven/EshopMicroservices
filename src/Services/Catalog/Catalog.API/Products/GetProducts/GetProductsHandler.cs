@@ -1,17 +1,10 @@
-﻿using Marten.Pagination;
+﻿using BuildingBlocks.Pagination;
+using Marten.Pagination;
 
 namespace Catalog.API.Products.GetProducts;
 
-public record GetProductsQuery(int? PageNumber = 1, int? PageSize = 10) : IQuery<GetProductsResult>;
-public record GetProductsResult(
-    int TotalCount,
-    IEnumerable<Product> Products,
-    int CurrentPage,
-    int PageSize,
-    int TotalPages,
-    bool HasNextPage,
-    bool HasPreviousPage
-);
+public record GetProductsQuery(PaginationRequest PaginationRequest) : IQuery<GetProductsResult>;
+public record GetProductsResult(PaginatedResult<Product> Products);
 
 internal class GetProductsQueryHandler
     (IDocumentSession session)
@@ -19,26 +12,25 @@ internal class GetProductsQueryHandler
 {
     public async Task<GetProductsResult> Handle(GetProductsQuery query, CancellationToken cancellationToken)
     {
-        var pageNumber = query.PageNumber ?? 1;
-        var pageSize = query.PageSize ?? 10;
+        var pageIndex = query.PaginationRequest.PageIndex;
+        var pageSize = query.PaginationRequest.PageSize;
 
         // Total de productos en la base de datos
         var totalCount = await session.Query<Product>().CountAsync(cancellationToken);
 
         // Productos paginados
         var products = await session.Query<Product>()
-            .ToPagedListAsync(pageNumber, pageSize, cancellationToken);
+            .ToPagedListAsync(pageIndex, pageSize, cancellationToken);
 
-        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+        var pages = (int)Math.Ceiling((double)totalCount / pageSize);
 
         return new GetProductsResult(
-            totalCount,
-            products,
-            pageNumber,
-            pageSize,
-            totalPages,
-            pageNumber < totalPages,
-            pageNumber > 1
-        );
+            new PaginatedResult<Product>(
+                pages,
+                pageIndex,
+                pageSize,
+                totalCount,
+                products
+                ));
     }
 }

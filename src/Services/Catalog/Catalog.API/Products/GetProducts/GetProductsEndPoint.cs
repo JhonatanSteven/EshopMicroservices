@@ -1,45 +1,29 @@
-﻿namespace Catalog.API.Products.GetProducts
+﻿using BuildingBlocks.Pagination;
+
+namespace Catalog.API.Products.GetProducts
 {
-    public record GetProductsRequest(int? PageNumber = 1, int? PageSize = 10);
-    public record GetProductsResponse(
-        int TotalCount,
-        IEnumerable<Product> Products,
-        int CurrentPage,
-        int PageSize,
-        int TotalPages,
-        bool HasNextPage,
-        bool HasPreviousPage
-    );
+    public record GetProductsResponse(PaginatedResult<Product> Products);
 
     public class GetProductsEndPoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/products", async ([AsParameters] GetProductsRequest request, ISender sender) =>
+            app.MapGet("/products", async ([AsParameters] PaginationRequest request, ISender sender) =>
             {
-                var query = new GetProductsQuery(request.PageNumber, request.PageSize);
+                var query = new GetProductsQuery(request);
 
                 var result = await sender.Send(query);
 
-                // Mapeo explícito para asegurar que todos los campos se transfieren correctamente
-                var response = new GetProductsResponse(
-                    result.TotalCount,
-                    result.Products,
-                    result.CurrentPage,
-                    result.PageSize,
-                    result.TotalPages,
-                    result.HasNextPage,
-                    result.HasPreviousPage
-                );
+                var response = result.Adapt<GetProductsResponse>();
 
                 return Results.Ok(response);
             })
-            .WithName("GetProducts")
             .WithTags("Product")
-            .Produces<GetProductsResponse>(StatusCodes.Status200OK)
-            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithName("GetProducts")
             .WithSummary("Get Products")
-            .WithDescription("Get Products");
+            .WithDescription("Get Products")
+            .Produces<GetProductsResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
         }
     }
 }
