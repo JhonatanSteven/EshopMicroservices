@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Pagination;
 using Marten.Pagination;
+using System.Text.Json;
 
 namespace Catalog.API.Products.GetProducts;
 
@@ -7,11 +8,12 @@ public record GetProductsQuery(PaginationRequest PaginationRequest) : IQuery<Get
 public record GetProductsResult(PaginatedResult<Product> Products);
 
 internal class GetProductsQueryHandler
-    (IDocumentSession session)
+    (IDocumentSession session, ILogger<GetProductsQueryHandler> logger)
     : IQueryHandler<GetProductsQuery, GetProductsResult>
 {
     public async Task<GetProductsResult> Handle(GetProductsQuery query, CancellationToken cancellationToken)
     {
+        logger.LogInformation("Handling GetProductsQuery with query: {@query}", query.PaginationRequest);
         var pageIndex = query.PaginationRequest.PageIndex;
         var pageSize = query.PaginationRequest.PageSize;
 
@@ -23,14 +25,20 @@ internal class GetProductsQueryHandler
             .ToPagedListAsync(pageIndex, pageSize, cancellationToken);
 
         var pages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-        return new GetProductsResult(
-            new PaginatedResult<Product>(
+        var results = new PaginatedResult<Product>(
                 pages,
                 pageIndex,
                 pageSize,
                 totalCount,
                 products
-                ));
+                );
+        logger.LogInformation(
+            "Successfully handled GetProductsQuery: pageIndex={PageIndex}, pageSize={PageSize}, totalCount={TotalCount}, pageCount={PageCount}",
+            pageIndex,
+            pageSize,
+            totalCount,
+            pages);
+
+        return new GetProductsResult(results);
     }
 }
