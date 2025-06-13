@@ -24,7 +24,7 @@ namespace Catalog.API.Products.GetProductsByCategory
             .WithTags("Product")
             .WithName("GetProductsByCategory")
             .WithSummary("Get Products By Category")
-            .WithDescription("Obtiene productos filtrados por categoría con paginación")
+            .WithDescription("Get Products By Category")
             .Produces<GetProductsByCategoryResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest);
         }

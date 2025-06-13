@@ -18,12 +18,12 @@
                     return Results.Created($"/products/{response.Id}", response);
 
                 })
-            .WithName("CreateProduct")
             .WithTags("Product")
-            .Produces<CreateProductResponse>(StatusCodes.Status201Created)
-            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithName("CreateProduct")
             .WithSummary("Create Product")
-            .WithDescription("Create Product");
+            .WithDescription("Create Product")
+            .Produces<CreateProductResponse>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
         }
     }
 }

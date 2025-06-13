@@ -1,3 +1,4 @@
+
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -7,12 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var assembly = typeof(Program).Assembly;
+
+// Add FluentValidation and register validators from the current assembly
+builder.Services.AddValidatorsFromAssembly(assembly);
+
 // Add services to the container
 builder.Services.AddCarter();
 
 builder.Services.AddMediatR(config =>
 {
-    config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    config.RegisterServicesFromAssembly(assembly);
 });
 
 builder.Services.AddMarten(options =>
